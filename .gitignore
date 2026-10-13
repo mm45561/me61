@@ -1,0 +1,7 @@
+__pycache__/
+*.pyc
+.pytest_cache/
+# colcon output, in case the workspace root is ever opened inside src/
+build/
+install/
+log/

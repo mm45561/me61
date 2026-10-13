@@ -1,0 +1,18 @@
+# Fleet manager -> robot. One goal is one leg of the GTP cycle.
+# Served on /<robot_id>/execute_task by the robot's task executor (state machine).
+#
+# Task types. Keep in sync with amr_fleet_manager/fleet_core.py (TaskType).
+uint8 GO_TO_STATION=1     # drive to a GTP station and precision-dock beside it
+uint8 DELIVER=2           # undock, drive to a drop-off, finish once unloaded
+uint8 RETURN_TO_QUEUE=3   # drive to a ready-queue slot and park
+
+string task_id
+uint8 task_type
+string target_id                       # station, destination or slot id
+geometry_msgs/PoseStamped target_pose  # stamp 0 = use the latest transform
+---
+bool success
+string message
+---
+uint8 state                            # a RobotState state value
+float32 distance_remaining             # [m]

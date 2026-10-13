@@ -1,0 +1,13 @@
+# Parameters of the fleet manager node (/fleet/fleet_manager).
+# ROS 2 parameters are typed: write floats with a decimal point (25.0, not 25).
+/fleet/fleet_manager:
+  ros__parameters:
+    robot_ids: ['amr_1', 'amr_2', 'amr_3']   # fleet_sim.launch.py overrides this
+    site_config_file: ''                     # set by the launch file
+    selection_policy: nearest                # nearest | longest_idle
+    min_battery_percent: 25.0
+    heartbeat_timeout_s: 3.0
+    clearance_m: 1.0
+    match_tolerance_m: 0.5
+    retry_cooldown_s: 5.0
+    tick_period_s: 0.5

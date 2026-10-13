@@ -1,0 +1,11 @@
+# Called by a GTP station HMI (touchscreen or button) when loading is finished.
+# The fleet manager sends the AMR docked at `station_id` to a drop-off and then
+# calls the next idle AMR to the freed dock.
+
+string station_id         # e.g. "gtp_1"
+string destination_id     # optional; empty = the station's default destination
+---
+bool accepted
+string task_id
+string robot_id
+string message            # human-readable reason, meant to be shown on the HMI
