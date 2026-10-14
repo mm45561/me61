@@ -26,7 +26,7 @@
     <plugin filename="gz-sim-diff-drive-system" name="gz::sim::systems::DiffDrive">
       <left_joint>left_wheel_joint</left_joint>
       <right_joint>right_wheel_joint</right_joint>
-      <wheel_separation>${base_width + wheel_width}</wheel_separation>
+      <wheel_separation>${wheel_separation}</wheel_separation>
       <wheel_radius>${wheel_radius}</wheel_radius>
       <max_linear_velocity>1.0</max_linear_velocity>
       <max_angular_velocity>1.5</max_angular_velocity>

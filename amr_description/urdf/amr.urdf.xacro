@@ -1,76 +1,88 @@
 <?xml version="1.0"?>
 <robot name="amr" xmlns:xacro="http://www.ros.org/wiki/xacro">
 
-  <!-- ========== Dimensions (metres, kg) ========== -->
-  <xacro:property name="base_length" value="0.6"/>
-  <xacro:property name="base_width" value="0.4"/>
-  <xacro:property name="base_height" value="0.2"/>
-  <xacro:property name="base_mass" value="15.0"/>
-  <xacro:property name="ground_clearance" value="0.03"/>
+  <!--
+    AMR with the look and dimensions of a MiR100.
+    Meshes: meshes/mir/ (from DFKI-NI/mir_robot, BSD licence, see meshes/mir/LICENSE).
+    Visuals use the meshes; collisions stay simple shapes so physics and Nav2 stay fast.
+    Link names are unchanged, so amr.gazebo.xacro, the bridge and Nav2 still work.
+  -->
 
-  <xacro:property name="wheel_radius" value="0.08"/>
-  <xacro:property name="wheel_width" value="0.05"/>
+  <xacro:property name="mesh_dir" value="file://$(find amr_description)/meshes/mir"/>
+
+  <!-- ========== Dimensions (metres, kg), measured from the MiR100 meshes ========== -->
+  <xacro:property name="base_mass" value="58.0"/>
+  <xacro:property name="body_length" value="0.898"/>
+  <xacro:property name="body_width" value="0.585"/>
+  <xacro:property name="body_bottom" value="0.02"/>      <!-- underside of the body above the floor -->
+  <xacro:property name="body_top" value="0.354"/>        <!-- top surface (cargo deck) height -->
+  <xacro:property name="body_dx" value="0.037646"/>      <!-- body centre is ahead of the wheel axle -->
+
+  <xacro:property name="wheel_radius" value="0.0625"/>
+  <xacro:property name="wheel_width" value="0.032"/>
+  <xacro:property name="wheel_dy" value="0.222604"/>     <!-- half the distance between drive wheels -->
+  <xacro:property name="wheel_separation" value="${2 * wheel_dy}"/>
   <xacro:property name="wheel_mass" value="1.0"/>
 
-  <xacro:property name="caster_radius" value="0.03"/>
-  <xacro:property name="caster_x" value="0.22"/>
+  <xacro:property name="caster_front_x" value="0.341346"/>
+  <xacro:property name="caster_rear_x" value="-0.270154"/>
+  <xacro:property name="caster_dy" value="0.203"/>
+  <xacro:property name="caster_radius" value="${wheel_radius}"/>
 
-  <!-- Height of base_link (centre of the box) above the ground -->
-  <xacro:property name="base_z" value="${ground_clearance + base_height / 2}"/>
-
-  <!-- ========== Footprint: on the ground, under the robot centre ========== -->
+  <!-- ========== Footprint: on the ground, under the wheel axle centre ========== -->
   <link name="base_footprint"/>
 
-  <!-- ========== Chassis ========== -->
+  <!-- ========== Body: base_link sits on the ground like on a real MiR ========== -->
   <link name="base_link">
     <visual>
+      <origin xyz="${body_dx} 0 0"/>
       <geometry>
-        <box size="${base_length} ${base_width} ${base_height}"/>
+        <mesh filename="${mesh_dir}/mir_100_base.stl"/>
       </geometry>
-      <material name="orange">
-        <color rgba="1.0 0.5 0.0 1.0"/>
+      <material name="mir_grey">
+        <color rgba="0.75 0.75 0.75 1.0"/>
       </material>
     </visual>
     <collision>
+      <origin xyz="${body_dx} 0 ${(body_bottom + body_top) / 2}"/>
       <geometry>
-        <box size="${base_length} ${base_width} ${base_height}"/>
+        <box size="${body_length} ${body_width} ${body_top - body_bottom}"/>
       </geometry>
     </collision>
     <inertial>
+      <origin xyz="${body_dx} 0 0.2"/>
       <mass value="${base_mass}"/>
-      <inertia ixx="${base_mass / 12.0 * (base_width**2 + base_height**2)}" ixy="0" ixz="0"
-               iyy="${base_mass / 12.0 * (base_length**2 + base_height**2)}" iyz="0"
-               izz="${base_mass / 12.0 * (base_length**2 + base_width**2)}"/>
+      <inertia ixx="${base_mass / 12.0 * (body_width**2 + body_top**2)}" ixy="0" ixz="0"
+               iyy="${base_mass / 12.0 * (body_length**2 + body_top**2)}" iyz="0"
+               izz="${base_mass / 12.0 * (body_length**2 + body_width**2)}"/>
     </inertial>
   </link>
 
   <joint name="base_joint" type="fixed">
     <parent link="base_footprint"/>
     <child link="base_link"/>
-    <origin xyz="0 0 ${base_z}" rpy="0 0 0"/>
+    <origin xyz="0 0 0"/>
   </joint>
 
-  <!-- ========== Drive wheel macro: side = 1 (left) or -1 (right) ========== -->
+  <!-- ========== Drive wheels: side = 1 (left) or -1 (right) ========== -->
   <xacro:macro name="drive_wheel" params="name side">
     <link name="${name}_wheel">
       <visual>
-        <!-- a cylinder points along Z; roll it 90 deg so it points along Y -->
-        <origin xyz="0 0 0" rpy="${pi / 2} 0 0"/>
         <geometry>
-          <cylinder radius="${wheel_radius}" length="${wheel_width}"/>
+          <mesh filename="${mesh_dir}/wheel.stl"/>
         </geometry>
         <material name="black">
           <color rgba="0.1 0.1 0.1 1.0"/>
         </material>
       </visual>
       <collision>
-        <origin xyz="0 0 0" rpy="${pi / 2} 0 0"/>
+        <origin rpy="${pi / 2} 0 0"/>
         <geometry>
           <cylinder radius="${wheel_radius}" length="${wheel_width}"/>
         </geometry>
       </collision>
       <inertial>
-        <origin xyz="0 0 0" rpy="${pi / 2} 0 0"/>
+        <origin rpy="${pi / 2} 0 0"/>
         <mass value="${wheel_mass}"/>
         <inertia ixx="${wheel_mass / 12.0 * (3 * wheel_radius**2 + wheel_width**2)}"
                  ixy="0" ixz="0"
@@ -82,9 +94,7 @@
     <joint name="${name}_wheel_joint" type="continuous">
       <parent link="base_link"/>
       <child link="${name}_wheel"/>
-      <!-- middle of the side, just outside the box, axle at wheel_radius above the ground -->
-      <origin xyz="0 ${side * (base_width / 2 + wheel_width / 2)} ${wheel_radius - base_z}"
-              rpy="0 0 0"/>
+      <origin xyz="0 ${side * wheel_dy} ${wheel_radius}"/>
       <axis xyz="0 1 0"/>
     </joint>
   </xacro:macro>
@@ -92,135 +102,91 @@
   <xacro:drive_wheel name="left" side="1"/>
   <xacro:drive_wheel name="right" side="-1"/>
 
-  <!-- ========== Caster macro: position = 1 (front) or -1 (rear) ========== -->
-  <xacro:macro name="caster" params="name position">
+  <!--
+    ========== Casters: one link per axle, each carrying the left and right caster ==========
+    A real MiR has four swivel casters. Here they are fixed, frictionless spheres
+    (see amr.gazebo.xacro); the meshes only make them look right.
+  -->
+  <!-- one caster (swivel housing + wheel) drawn at side offset y inside a caster link -->
+  <xacro:macro name="caster_visual" params="y">
+    <visual>
+      <origin xyz="0 ${y} ${caster_radius + 0.094 - 0.0425}" rpy="${24 * pi / 180} 0 ${pi / 2}"/>
+      <geometry>
+        <mesh filename="${mesh_dir}/caster_wheel_base.stl"/>
+      </geometry>
+      <material name="mir_grey"/>
+    </visual>
+    <visual>
+      <origin xyz="-0.0382 ${y} ${caster_radius}"/>
+      <geometry>
+        <mesh filename="${mesh_dir}/wheel.stl"/>
+      </geometry>
+      <material name="black"/>
+    </visual>
+    <collision>
+      <origin xyz="0 ${y} ${caster_radius}"/>
+      <geometry>
+        <sphere radius="${caster_radius}"/>
+      </geometry>
+    </collision>
+  </xacro:macro>
+
+  <xacro:macro name="caster_pair" params="name x">
     <link name="${name}_caster">
-      <visual>
-        <geometry>
-          <sphere radius="${caster_radius}"/>
-        </geometry>
-        <material name="grey">
-          <color rgba="0.6 0.6 0.6 1.0"/>
-        </material>
-      </visual>
-      <collision>
-        <geometry>
-          <sphere radius="${caster_radius}"/>
-        </geometry>
-      </collision>
+      <xacro:caster_visual y="${caster_dy}"/>
+      <xacro:caster_visual y="${-caster_dy}"/>
       <inertial>
-        <mass value="0.2"/>
-        <inertia ixx="${0.4 * 0.2 * caster_radius**2}" ixy="0" ixz="0"
-                 iyy="${0.4 * 0.2 * caster_radius**2}" iyz="0"
-                 izz="${0.4 * 0.2 * caster_radius**2}"/>
+        <origin xyz="0 0 ${caster_radius}"/>
+        <mass value="0.5"/>
+        <inertia ixx="0.001" ixy="0" ixz="0" iyy="0.001" iyz="0" izz="0.001"/>
       </inertial>
     </link>
 
     <joint name="${name}_caster_joint" type="fixed">
       <parent link="base_link"/>
       <child link="${name}_caster"/>
-      <!-- the sphere touches the ground: its centre is caster_radius above it -->
-      <origin xyz="${position * caster_x} 0 ${caster_radius - base_z}" rpy="0 0 0"/>
+      <origin xyz="${x} 0 0"/>
     </joint>
   </xacro:macro>
 
-  <xacro:caster name="front" position="1"/>
-  <xacro:caster name="rear" position="-1"/>
-  <!-- ========== Cargo deck: plate + low rim, behind the LiDAR ========== -->
-  <xacro:property name="deck_length" value="0.48"/>
-  <xacro:property name="deck_x" value="-0.05"/>        <!-- shifted back to leave room for the LiDAR -->
-  <xacro:property name="plate_thickness" value="0.01"/>
-  <xacro:property name="rim_height" value="0.04"/>
-  <xacro:property name="rim_thickness" value="0.01"/>
+  <xacro:caster_pair name="front" x="${caster_front_x}"/>
+  <xacro:caster_pair name="rear" x="${caster_rear_x}"/>
 
-  <link name="cargo_deck">
-    <visual>
-      <origin xyz="0 0 ${plate_thickness / 2}"/>
-      <geometry>
-        <box size="${deck_length} ${base_width} ${plate_thickness}"/>
-      </geometry>
-      <material name="grey"/>
-    </visual>
-    <collision>
-      <origin xyz="0 0 ${plate_thickness / 2}"/>
-      <geometry>
-        <box size="${deck_length} ${base_width} ${plate_thickness}"/>
-      </geometry>
-    </collision>
-    <inertial>
-      <mass value="1.0"/>
-      <inertia ixx="0.01" ixy="0" ixz="0" iyy="0.02" iyz="0" izz="0.03"/>
-    </inertial>
-  </link>
-
-  <joint name="cargo_deck_joint" type="fixed">
-    <parent link="base_link"/>
-    <child link="cargo_deck"/>
-    <!-- sits on top of the box -->
-    <origin xyz="${deck_x} 0 ${base_height / 2}"/>
-  </joint>
-  <!-- one rim wall: size and position relative to the deck -->
-  <xacro:macro name="rim" params="name sx sy x y">
-    <link name="rim_${name}">
-      <visual>
-        <geometry>
-          <box size="${sx} ${sy} ${rim_height}"/>
-        </geometry>
-        <material name="grey"/>
-      </visual>
-      <collision>
-        <geometry>
-          <box size="${sx} ${sy} ${rim_height}"/>
-        </geometry>
-      </collision>
-      <inertial>
-        <mass value="0.1"/>
-        <inertia ixx="0.001" ixy="0" ixz="0" iyy="0.001" iyz="0" izz="0.001"/>
-      </inertial>
-    </link>
-    <joint name="rim_${name}_joint" type="fixed">
-      <parent link="cargo_deck"/>
-      <child link="rim_${name}"/>
-      <origin xyz="${x} ${y} ${plate_thickness + rim_height / 2}"/>
-    </joint>
-  </xacro:macro>
-
-  <xacro:rim name="front" sx="${rim_thickness}" sy="${base_width}"
-             x="${deck_length / 2 - rim_thickness / 2}" y="0"/>
-  <xacro:rim name="rear" sx="${rim_thickness}" sy="${base_width}"
-             x="${-deck_length / 2 + rim_thickness / 2}" y="0"/>
-  <xacro:rim name="left" sx="${deck_length}" sy="${rim_thickness}"
-             x="0" y="${base_width / 2 - rim_thickness / 2}"/>
-  <xacro:rim name="right" sx="${deck_length}" sy="${rim_thickness}"
-             x="0" y="${-base_width / 2 + rim_thickness / 2}"/>
-
-  <!-- ========== LiDAR: on the front of the top, ahead of the cargo deck ========== -->
-  <xacro:property name="lidar_radius" value="0.04"/>
-  <xacro:property name="lidar_height" value="0.05"/>
+  <!--
+    ========== LiDAR: a SICK scanner on top, at the front edge ==========
+    A real MiR has two corner scanners whose scans are merged. One scanner on top
+    is simpler to start with and nothing on the robot can block its beam.
+  -->
+  <xacro:property name="lidar_mount_height" value="0.116"/>   <!-- scanner origin above its base -->
 
   <link name="lidar_link">
     <visual>
       <geometry>
-        <cylinder radius="${lidar_radius}" length="${lidar_height}"/>
+        <mesh filename="${mesh_dir}/sick_lms-100.stl"/>
       </geometry>
-      <material name="black"/>
+      <material name="sick_yellow">
+        <color rgba="0.95 0.75 0.1 1.0"/>
+      </material>
     </visual>
     <collision>
+      <origin xyz="-0.012 0 -0.04"/>
       <geometry>
-        <cylinder radius="${lidar_radius}" length="${lidar_height}"/>
+        <box size="0.126 0.102 0.153"/>
       </geometry>
     </collision>
     <inertial>
-      <mass value="0.2"/>
-      <inertia ixx="0.0001" ixy="0" ixz="0" iyy="0.0001" iyz="0" izz="0.0002"/>
+      <mass value="1.1"/>
+      <inertia ixx="0.002" ixy="0" ixz="0" iyy="0.002" iyz="0" izz="0.002"/>
     </inertial>
   </link>
 
   <joint name="lidar_joint" type="fixed">
     <parent link="base_link"/>
     <child link="lidar_link"/>
-       <origin xyz="${base_length / 2 - 0.05} 0 ${base_height / 2 + plate_thickness + rim_height + lidar_height / 2 + 0.01}"/>
+    <origin xyz="${body_dx + body_length / 2 - 0.08} 0 ${body_top + lidar_mount_height}"/>
   </joint>
-    <!-- Simulation-only parts (friction, DiffDrive, LiDAR sensor) -->
+
+  <!-- Simulation-only parts (friction, DiffDrive, LiDAR sensor) -->
   <xacro:include filename="amr.gazebo.xacro"/>
+
 </robot>
