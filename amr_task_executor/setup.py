@@ -26,6 +26,7 @@ setup(
     entry_points={
         'console_scripts': [
             'executor = amr_task_executor.executor_node:main',
+            'click_waypoints = amr_task_executor.click_waypoints:main',
         ],
     },
 )
