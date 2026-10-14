@@ -1,33 +1,24 @@
-# Floor layout for the fleet manager. Every pose is [x, y, yaw] (metres, radians)
-# in `frame_id`, the map frame Nav2 localises in.
-#
-# These numbers are placeholders inside a 6 x 6 m room. Read the real ones from your
-# map: in RViz use the "Publish Point" tool and `ros2 topic echo /clicked_point`.
-#
-# A robot only counts as having left a place once it is `clearance_m`
-# (fleet_manager.yaml) away from it, so keep each dock, drop-off and slot more than
-# that distance from the places robots drive to next.
+# Floor layout of the Nav2 warehouse world. Every pose is [x, y, yaw]
+# (metres, radians) in the map frame. Picked with RViz "Publish Point" and
+# tested with Nav2 follow_waypoints: all five places are reachable.
 frame_id: map
 
 stations:
   gtp_1:
-    dock_pose: [1.0, 2.0, 0.0]      # where the AMR stops beside the station
+    dock_pose: [-12.63, 2.61, 0.0]    # next to the wall, open space in front
     default_destination: sort_1
-    auto_replenish: true            # always keep one AMR waiting at this dock
+    auto_replenish: true              # always keep one AMR waiting here
 
 destinations:
   sort_1:
-    pose: [2.0, -2.0, -1.5708]
-  sort_2:
-    pose: [0.5, -2.0, -1.5708]
+    pose: [12.49, 1.80, 0.0]          # 25 m from the station
 
-# Parking bays of the ready queue. Each bay must be reachable on its own (side by
-# side, not a single-file lane): the fleet manager does not shuffle robots forward
-# in a lane. There must be at least as many slots as robots.
+# Ready queue: one column below the delivery path (2.4 m or more off it),
+# about 2 m between slots so each slot can be reached on its own.
 queue_slots:
   q1:
-    pose: [-2.0, 1.5, 0.0]
+    pose: [-4.88, -0.03, 0.0]
   q2:
-    pose: [-2.0, 0.5, 0.0]
+    pose: [-4.91, -2.05, 0.0]
   q3:
-    pose: [-2.0, -0.5, 0.0]
+    pose: [-4.82, -4.13, 0.0]
