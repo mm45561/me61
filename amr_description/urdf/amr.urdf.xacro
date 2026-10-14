@@ -40,7 +40,7 @@
         <mesh filename="${mesh_dir}/mir_100_base.stl"/>
       </geometry>
       <material name="mir_grey">
-        <color rgba="0.75 0.75 0.75 1.0"/>
+        <color rgba="0.05 0.15 0.40 1.0"/>
       </material>
     </visual>
     <collision>
@@ -164,8 +164,8 @@
       <geometry>
         <mesh filename="${mesh_dir}/sick_lms-100.stl"/>
       </geometry>
-      <material name="sick_yellow">
-        <color rgba="0.95 0.75 0.1 1.0"/>
+            <material name="sick_red">
+        <color rgba="0.85 0.1 0.1 1.0"/>
       </material>
     </visual>
     <collision>
@@ -184,6 +184,50 @@
     <parent link="base_link"/>
     <child link="lidar_link"/>
     <origin xyz="${body_dx + body_length / 2 - 0.08} 0 ${body_top + lidar_mount_height}"/>
+  </joint>
+  <!-- ========== Modern trim: visual only, no collision ========== -->
+  <link name="body_trim">
+    <!-- light grey top cover: the cargo surface -->
+    <visual>
+      <origin xyz="${body_dx} 0 ${body_top + 0.004}"/>
+      <geometry>
+        <box size="${body_length - 0.03} ${body_width - 0.03} 0.008"/>
+      </geometry>
+      <material name="cover_grey">
+        <color rgba="0.85 0.87 0.90 1.0"/>
+      </material>
+    </visual>
+    <!-- cyan LED strip all around, just below the top -->
+    <visual>
+      <origin xyz="${body_dx} 0 ${body_top - 0.05}"/>
+      <geometry>
+        <box size="${body_length + 0.006} ${body_width + 0.006} 0.015"/>
+      </geometry>
+      <material name="led_cyan">
+        <color rgba="0.0 0.85 1.0 1.0"/>
+      </material>
+    </visual>
+    <!-- black rubber bumper around the bottom -->
+    <visual>
+      <origin xyz="${body_dx} 0 ${body_bottom + 0.03}"/>
+      <geometry>
+        <box size="${body_length + 0.012} ${body_width + 0.012} 0.06"/>
+      </geometry>
+      <material name="bumper_black">
+        <color rgba="0.05 0.05 0.05 1.0"/>
+      </material>
+    </visual>
+    <!-- a tiny mass, otherwise Gazebo drops the link and its visuals -->
+    <inertial>
+      <mass value="0.1"/>
+      <inertia ixx="0.0001" ixy="0" ixz="0" iyy="0.0001" iyz="0" izz="0.0001"/>
+    </inertial>
+  </link>
+
+  <joint name="body_trim_joint" type="fixed">
+    <parent link="base_link"/>
+    <child link="body_trim"/>
+    <origin xyz="0 0 0"/>
   </joint>
 
   <!-- Simulation-only parts (friction, DiffDrive, LiDAR sensor) -->
