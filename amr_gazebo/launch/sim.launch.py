@@ -4,7 +4,7 @@ import os
 
 from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription
-from launch.actions import IncludeLaunchDescription
+from launch.actions import AppendEnvironmentVariable, IncludeLaunchDescription
 from launch.substitutions import Command
 from launch_ros.actions import Node
 from launch_ros.parameter_descriptions import ParameterValue
@@ -18,6 +18,10 @@ def generate_launch_description():
     bridge_config = os.path.join(gazebo_share, 'config', 'bridge.yaml')
 
     robot_description = ParameterValue(Command(['xacro ', xacro_file]), value_type=str)
+
+    # 0. Tell Gazebo where our own models are (model://apriltag_0 ... in the world)
+    models_path = AppendEnvironmentVariable(
+        'GZ_SIM_RESOURCE_PATH', os.path.join(gazebo_share, 'models'))
 
     # 1. Gazebo with the warehouse; -r = start playing immediately
     gazebo = IncludeLaunchDescription(
@@ -40,4 +44,4 @@ def generate_launch_description():
         package='ros_gz_bridge', executable='parameter_bridge',
         parameters=[{'config_file': bridge_config, 'use_sim_time': True}])
 
-    return LaunchDescription([gazebo, robot_state_publisher, spawn, bridge])
+    return LaunchDescription([models_path, gazebo, robot_state_publisher, spawn, bridge])

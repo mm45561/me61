@@ -255,5 +255,37 @@
       <pose>-12 15 0 0 0 0</pose>
     </include>
 
+    <!--
+      AprilTags on the floor (models in amr_gazebo/models). Each tag lies 0.8 m in
+      front of its place in amr_fleet_manager/config/site.yaml. Every place has
+      yaw 0 (the robot faces +x), and the front camera looks 40 deg down, so a
+      robot parked on the place sees its tag in the middle of the image.
+    -->
+    <include>
+      <uri>model://apriltag_0</uri>
+      <name>tag_gtp_1</name>
+      <pose>-11.83 2.61 0 0 0 0</pose>    <!-- gtp_1  (-12.63, 2.61) -->
+    </include>
+    <include>
+      <uri>model://apriltag_1</uri>
+      <name>tag_sort_1</name>
+      <pose>13.29 1.80 0 0 0 0</pose>     <!-- sort_1 (12.49, 1.80) -->
+    </include>
+    <include>
+      <uri>model://apriltag_2</uri>
+      <name>tag_q1</name>
+      <pose>-4.08 -0.03 0 0 0 0</pose>    <!-- q1 (-4.88, -0.03) -->
+    </include>
+    <include>
+      <uri>model://apriltag_3</uri>
+      <name>tag_q2</name>
+      <pose>-4.11 -2.05 0 0 0 0</pose>    <!-- q2 (-4.91, -2.05) -->
+    </include>
+    <include>
+      <uri>model://apriltag_4</uri>
+      <name>tag_q3</name>
+      <pose>-4.02 -4.13 0 0 0 0</pose>    <!-- q3 (-4.82, -4.13) -->
+    </include>
+
   </world>
 </sdf>

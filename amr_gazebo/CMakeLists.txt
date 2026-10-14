@@ -22,7 +22,7 @@ if(BUILD_TESTING)
   set(ament_cmake_cpplint_FOUND TRUE)
   ament_lint_auto_find_test_dependencies()
 endif()
-install(DIRECTORY worlds launch maps config
+install(DIRECTORY worlds launch maps config models
   DESTINATION share/${PROJECT_NAME})
   
 ament_package()

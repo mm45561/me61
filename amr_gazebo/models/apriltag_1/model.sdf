@@ -1,0 +1,35 @@
+<?xml version="1.0"?>
+<sdf version="1.9">
+  <!--
+    AprilTag 36h11, id 1, lying flat on the floor.
+    The plate is 0.25 m; the black square inside it is 0.20 m (8 of 10 cells),
+    and 0.20 m is the tag size apriltag_ros needs.
+    Visual only, no collision: robots drive over it like over a floor sticker.
+  -->
+  <model name="apriltag_1">
+    <static>true</static>
+    <link name="link">
+      <visual name="tag">
+        <pose>0 0 0.01 0 0 0</pose>  <!-- 1 cm up, so the floor never hides it -->
+        <geometry>
+          <plane>
+            <normal>0 0 1</normal>
+            <size>0.25 0.25</size>
+          </plane>
+        </geometry>
+        <material>
+          <ambient>1 1 1 1</ambient>
+          <diffuse>1 1 1 1</diffuse>
+          <specular>0 0 0 1</specular>
+          <pbr>
+            <metal>
+              <albedo_map>materials/textures/tag36_11_00001.png</albedo_map>
+              <metalness>0.0</metalness>
+              <roughness>1.0</roughness>
+            </metal>
+          </pbr>
+        </material>
+      </visual>
+    </link>
+  </model>
+</sdf>
