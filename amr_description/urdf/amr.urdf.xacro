@@ -219,7 +219,7 @@
   <joint name="lidar_joint" type="fixed">
     <parent link="base_link"/>
     <child link="lidar_link"/>
-    <origin xyz="${base_length / 2 - 0.05} 0 ${base_height / 2 + lidar_height / 2}"/>
+       <origin xyz="${base_length / 2 - 0.05} 0 ${base_height / 2 + plate_thickness + rim_height + lidar_height / 2 + 0.01}"/>
   </joint>
     <!-- Simulation-only parts (friction, DiffDrive, LiDAR sensor) -->
   <xacro:include filename="amr.gazebo.xacro"/>
