@@ -1,0 +1,12 @@
+# apriltag_ros settings for the floor tags in amr_gazebo/models.
+/**:
+  ros__parameters:
+    family: 36h11
+    size: 0.2               # edge of the BLACK square in metres (the plate is 0.25 m)
+    max_hamming: 0          # accept only reads without a single wrong bit
+    detector:
+      threads: 2
+      decimate: 1.0         # search the full image: from 1.2 m away the tag is small
+      refine: true          # fit the edges precisely: better pose
+      sharpening: 0.25
+      

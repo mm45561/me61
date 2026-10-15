@@ -1,4 +1,4 @@
-"""Start everything: Gazebo warehouse + AMR, then RViz, then Nav2."""
+"""Start everything: Gazebo warehouse + AMR, then RViz, then Nav2, and the tag reader."""
 
 import os
 
@@ -12,6 +12,7 @@ def generate_launch_description():
     gazebo_share = get_package_share_directory('amr_gazebo')
     nav_share = get_package_share_directory('amr_navigation')
     nav2_share = get_package_share_directory('nav2_bringup')
+    docking_share = get_package_share_directory('amr_docking')
 
     # 1. Render Gazebo (and RViz) on the NVIDIA card, like the prefix we typed by hand
     nvidia = [
@@ -41,4 +42,16 @@ def generate_launch_description():
             }.items()),
     ])
 
-    return LaunchDescription([*nvidia, simulation, rviz, navigation])
+    # 5. Floor tags: apriltag_node finds them in the front camera image,
+    #    tag_dock_pose hands their pose to Nav2's docking server
+    tags = [
+        Node(package='apriltag_ros', executable='apriltag_node', name='apriltag',
+             parameters=[os.path.join(docking_share, 'config', 'apriltag.yaml'),
+                         {'use_sim_time': True}],
+             remappings=[('image_rect', '/camera/image_raw'),
+                         ('camera_info', '/camera/camera_info')]),
+        Node(package='amr_docking', executable='tag_dock_pose',
+             parameters=[{'use_sim_time': True}]),
+    ]
+
+    return LaunchDescription([*nvidia, simulation, rviz, navigation, *tags])
