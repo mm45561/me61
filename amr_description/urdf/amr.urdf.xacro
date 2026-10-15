@@ -229,8 +229,60 @@
     <child link="body_trim"/>
     <origin xyz="0 0 0"/>
   </joint>
+  <!-- ========== Downward camera: reads AprilTags on the floor ========== -->
+  <!-- Under the robot, between the drive wheels (the centre of rotation) -->
+  <link name="camera_link">
+    <visual>
+      <geometry>
+        <box size="0.03 0.05 0.03"/>
+      </geometry>
+      <material name="black"/>
+    </visual>
+    <inertial>
+      <mass value="0.05"/>
+      <inertia ixx="0.00001" ixy="0" ixz="0" iyy="0.00001" iyz="0" izz="0.00001"/>
+    </inertial>
+  </link>
+
+  <!-- pitch +90 deg: the camera's +x (its viewing direction in Gazebo) points down -->
+  <joint name="camera_joint" type="fixed">
+    <parent link="base_link"/>
+    <child link="camera_link"/>
+    <origin xyz="${body_dx + body_length / 2 + 0.015} 0 0.25" rpy="0 ${40 * pi / 180} 0"/>
+  </joint>
+
+  <!-- ROS camera convention: z out of the lens, x right, y down in the image -->
+  <link name="camera_optical_link"/>
+
+  <joint name="camera_optical_joint" type="fixed">
+    <parent link="camera_link"/>
+    <child link="camera_optical_link"/>
+    <origin xyz="0 0 0" rpy="${-pi / 2} 0 ${-pi / 2}"/>
+  </joint>
 
   <!-- Simulation-only parts (friction, DiffDrive, LiDAR sensor) -->
   <xacro:include filename="amr.gazebo.xacro"/>
+  <!-- Downward camera: 640x480 at 15 Hz, wide lens to see the floor tag -->
+  <gazebo reference="camera_link">
+    <sensor name="floor_camera" type="camera">
+      <topic>camera/image</topic>
+      <gz_frame_id>camera_optical_link</gz_frame_id>
+      <update_rate>15</update_rate>
+      <always_on>true</always_on>
+      <visualize>true</visualize>
+      <camera>
+        <horizontal_fov>1.75</horizontal_fov>
+        <image>
+          <width>640</width>
+          <height>480</height>
+          <format>R8G8B8</format>
+        </image>
+        <clip>
+          <near>0.02</near>
+          <far>2.0</far>
+        </clip>
+      </camera>
+    </sensor>
+  </gazebo>
 
 </robot>
