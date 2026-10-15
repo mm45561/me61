@@ -542,7 +542,7 @@ collision_monitor:
 docking_server:
   ros__parameters:
     controller_frequency: 50.0
-    initial_perception_timeout: 5.0
+    initial_perception_timeout: 5.0     # wait this long at the staging pose for the tag
     wait_charge_timeout: 5.0
     dock_approach_timeout: 30.0
     undock_linear_tolerance: 0.05
@@ -550,40 +550,54 @@ docking_server:
     max_retries: 3
     base_frame: "base_link"
     fixed_frame: "odom"
-    dock_prestaging_tolerance: 0.5
+    dock_prestaging_tolerance: 0.1      # skip driving to the staging pose only within 10 cm of it
     introspection_mode: "disabled"
 
-    # Types of docks
-    dock_plugins: ["simple_charging_dock"]
-    simple_charging_dock:
-      plugin: "opennav_docking::SimpleChargingDock"
-      docking_threshold: 0.05
-      staging_x_offset: -0.7
-      use_external_detection_pose: true
-      use_battery_status: false # true
-      use_stall_detection: false # true
-      dock_direction: "forward"
-
+    # Our one type of dock: an AprilTag on the floor, 0.8 m in front of the parked robot
+    dock_plugins: ["floor_tag_dock"]
+    floor_tag_dock:
+      plugin: "opennav_docking::SimpleNonChargingDock"
+      use_external_detection_pose: true   # the tag pose comes from tag_dock_pose
       external_detection_timeout: 1.0
-      external_detection_translation_x: -0.18
+      # The tag frame already points like the parked robot (x forward, z up), so no
+      # rotation; base_link must stop 0.8 m behind the tag centre.
+      external_detection_translation_x: -0.8
       external_detection_translation_y: 0.0
-      external_detection_rotation_roll: -1.57
-      external_detection_rotation_pitch: -1.57
+      external_detection_rotation_roll: 0.0
+      external_detection_rotation_pitch: 0.0
       external_detection_rotation_yaw: 0.0
       filter_coef: 0.1
+      staging_x_offset: -0.5              # Nav2 stops 0.5 m short: the tag is 1.3 m ahead
+      docking_threshold: 0.02             # docked when base_link is within 2 cm of the place
+      dock_direction: "forward"
 
-    # Dock instances
-    # The following example illustrates configuring dock instances.
-    # docks: ['home_dock']  # Input your docks here
-    # home_dock:
-    #   type: 'simple_charging_dock'
-    #   frame: map
-    #   pose: [0.0, 0.0, 0.0]
+    # Our places, from amr_fleet_manager/config/site.yaml: where base_link must stop
+    docks: ["gtp_1", "sort_1", "q1", "q2", "q3"]
+    gtp_1:
+      type: "floor_tag_dock"
+      frame: map
+      pose: [-12.63, 2.61, 0.0]
+    sort_1:
+      type: "floor_tag_dock"
+      frame: map
+      pose: [12.49, 1.80, 0.0]
+    q1:
+      type: "floor_tag_dock"
+      frame: map
+      pose: [-4.88, -0.03, 0.0]
+    q2:
+      type: "floor_tag_dock"
+      frame: map
+      pose: [-4.91, -2.05, 0.0]
+    q3:
+      type: "floor_tag_dock"
+      frame: map
+      pose: [-4.82, -4.13, 0.0]
 
     controller:
       k_phi: 3.0
       k_delta: 2.0
-      v_linear_min: 0.15
+      v_linear_min: 0.05                  # slow and steady for the last centimetres
       v_linear_max: 0.15
       use_collision_detection: true
       costmap_topic: "local_costmap/costmap_raw"
