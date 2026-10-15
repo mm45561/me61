@@ -229,8 +229,8 @@
     <child link="body_trim"/>
     <origin xyz="0 0 0"/>
   </joint>
-  <!-- ========== Downward camera: reads AprilTags on the floor ========== -->
-  <!-- Under the robot, between the drive wheels (the centre of rotation) -->
+  <!-- ========== Front camera: reads AprilTags on the floor ========== -->
+  <!-- On the front face, 25 cm up, tilted down (like the MiR100 front cameras) -->
   <link name="camera_link">
     <visual>
       <geometry>
@@ -244,7 +244,8 @@
     </inertial>
   </link>
 
-  <!-- pitch +90 deg: the camera's +x (its viewing direction in Gazebo) points down -->
+  <!-- pitch +40 deg: the camera's +x (its viewing direction in Gazebo) looks forward and
+       down; a tag 0.8 m in front of base_link lands in the middle of the image -->
   <joint name="camera_joint" type="fixed">
     <parent link="base_link"/>
     <child link="camera_link"/>
@@ -262,7 +263,7 @@
 
   <!-- Simulation-only parts (friction, DiffDrive, LiDAR sensor) -->
   <xacro:include filename="amr.gazebo.xacro"/>
-  <!-- Downward camera: 640x480 at 15 Hz, wide lens to see the floor tag -->
+  <!-- Front camera: 640x480 at 15 Hz, wide lens; draws nothing beyond 2 m -->
   <gazebo reference="camera_link">
     <sensor name="floor_camera" type="camera">
       <topic>camera/image</topic>
